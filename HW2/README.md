@@ -1,1 +1,1 @@
-We have uploaded our README file for HW2 as group 8                                                                               
+Please refer to zip file for all resources of LATEX file, figures etc.                                                                             
