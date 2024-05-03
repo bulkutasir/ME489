@@ -1,0 +1,169 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\setlength\parindent{24pt}
+\usepackage{geometry}
+\usepackage{hyperref}
+\renewcommand{\baselinestretch}{1.2}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\pgfplotsset{compat=1.17}
+
+
+\title{HW3}
+\author{Delibas, Sabirenur\\
+  \texttt{sabirenurd@gmail.com}
+  \and
+  Ulkutasir, Batuhan\\
+  \texttt{ulkutasir.batuhan@gmail.com}}
+\date{May 2024}
+\geometry{left=2.5cm, right=2.5cm, top=2cm, bottom=2cm}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+In this report, parallelization and increasing performance of the Lloyd's clustering algorithm which is used in many applications such as advanced data analytics and machine learning is presented. This clustering algorithm is an effective and fast way of clustering the data however, serial algorithms may result in long execution times while dealing with enormous data sets. In order to solve this problem, parallel computing techniques, especially libraries such as OpenMP, can be used to optimize processing processes.
+In this study, the development of Lloyd's clustering algorithm with a parallelized version with OpenMP is achieved. The aim is to make the algorithm run faster on large data sets by using the capabilities of OpenMP.
+The implementation details will be explained in detail in the further sections. Also, the results of the developed algorithm are provided for different data points, number of clusters, and dimensions, and lastly thread numbers and the obtained results will be compared with each other. At the end of the report, the effects of parallelization are discussed, and the capability of OpenMP will be understood.
+
+
+\section{Implementation Details}
+
+OpenMP is an API that facilitates parallel programming and can be used to parallelize a serial code. A serial k-means algorithm involves a series of loops in which data points and centroids must be processed collectively. The implementation of OpenMP on a serial code is described in this section. \newline
+
+\textbf{Parallel Loops:} There is parallelization in the assignPoints and updateCentroids functions' loops. The \textit{\#pragma omp parallel for} the directive is used to parallelize loops across threads. This shortens processing times and distributes the effort among threads. Since a single thread processes each loop iteration, many threads in a loop can operate concurrently.
+
+
+\textbf{Critical Regions:} The \textit{\#pragma omp critical} directive was used to specify the critical region in order to address the issues with simultaneous access to the Ci and Ck arrays in the assignPoints function. This resolves the race situation problem by limiting the number of threads that may access these arrays at once. By limiting the number of threads that may operate concurrently, the crucial area preserves data integrity. \\
+
+\textbf{Atomic Operations:} The updateCentroids function's whole set of operations was parallelized using the \textit{\#pragma omp atomic} directive. This reduces the likelihood of race situations and guarantees that a single thread completes the task at hand. Atomic operations should, however, be employed carefully because they are frequently expensive in terms of performance. \\
+
+\textbf{Time Calculation}: In your code, you use two timestamps to measure the running time of the k-means algorithm: start and end times. These timestamps are taken at the beginning and end of the algorithm and the difference between these times is calculated to obtain the total running time. This time is measured using the omp\_get\_wtime() function. This process is important to evaluate the performance of your code and measure the impact of parallelization. \\
+
+ \textbf{Number of Threads: }When parallelizeng with OpenMP, it is important to determine how many threads to use. The omp\_get\_max\_threads() function returns the maximum number of threads that can run simultaneously on your system. However, this number can be set to a specific value with the omp\_set\_num\_threads() function. Typically, an appropriate number of threads is selected based on the number of physical cores in the system or performance requirements.
+
+ \section{Results \& Discussion}
+The primary objective of this homework was to utilize multi-threading in our k-means algorithm that we built in the first homework. Naturally, as the number of parallel operations increases, a decrease in operation time becomes evident. We believe that by utilizing multi-threading, we can reduce the costs and time associated with computation. From the initial homework, we have selected two particularly challenging cases: First, the Birch\_N100000 file, having the highest number of data points and the longest computation time in a single-threaded operation. Second, the Circle\_N4000, which has a singularity at the center causing false cardinality calculations thus, increasing computation time. We believed that OpenMP could demonstrate distinct operational advantages while handling these cases. Based on our results, we have composed Figure \ref{fig1} to demonstrate the decrease in operation time between the two cases. Evidently, the total number of data points is the main factor behind the computation time. Therefore, two cases having 100,000 points and the other having 4,000, are shown on different axes for increasing clarity.
+
+
+
+\begin{figure} [htbp]
+    \centering
+    \begin{tikzpicture}
+\centering
+\begin{axis}[
+    title={Computation time (s) vs Number of Threads (\#)},
+    xlabel={Number of Threads (\#)},
+    ylabel={Computation time (s)},
+    axis y line*=left,
+    ymin=1, ymax=2.5,
+    xmin=1, xmax=8,
+    grid=major,
+    legend entries={Brich\_N1000000,Brich\_N4000},
+    legend pos=outer north west
+]
+    \addplot[blue, thick, mark=*] table[x=x, y=y1] {
+    x    y1        y2
+    1    2.1426    0.08355643
+    2    1.2989    0.0778131
+    3    1.4175    0.07811207
+    4    1.32      0.06671761
+    5    1.3382    0.0892274
+    6    1.384     0.1063114
+    7    1.33      0.1114357
+    8    1.36      0.1064246
+    };
+    \label{plot_one}
+\end{axis}
+
+\begin{axis}[
+    axis y line*=right,
+    axis x line=none,
+    ylabel={Computation time (s)},
+    ymin=0.05, ymax=0.12,
+    xmin=1, xmax=8,
+    ylabel near ticks,
+    yticklabel style={text color=red},
+    legend entries={Circle\_N4000, Brich\_N100000}, 
+    legend pos=north west
+]
+    \addplot[red, thick, mark=*] table[x=x, y=y2] {
+    x    y1        y2
+    1    2.1426    0.08355643
+    2    1.2989    0.0778131
+    3    1.4175    0.07811207
+    4    1.32      0.06671761
+    5    1.3382    0.0892274
+    6    1.384     0.1063114
+    7    1.33      0.1114357
+    8    1.36      0.1064246
+    };
+    \label{plot_two}
+\end{axis}
+\end{tikzpicture}
+    \caption{Effect of parallelization by multi-threading on computation time for two distinct cases Brich\_N100000(left) and Circle\_N4000(right)}
+    \label{fig1}
+\end{figure}
+
+
+Here, It is obvious that using multi-threading reduces computation time when compared to single-thread operation. However, the impact and extent of the decrease also depends on the computational data of the system. The blue line indicates that using a secondary thread decreases time by 50\%. However, further usage of higher numbered threads becomes irrelevant since the reduction in time is no longer significant due to the total data amount being the limiting factor. On the other hand, orange graph shows that we can benefit multi threading up until 4 threads cutting of time by only 10\% but further increasing the thread number results in higher operation times. This condition is due to the "over-parallelization" of this smaller data cluster.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+\begin{axis}[
+    title={Operation consistency at four (4) threading },
+    xlabel={Number of the Operation (\#)},
+    ylabel={Computation time (s)},
+    axis y line*=left,
+    ymin=1, ymax=1.5,
+    xmin=1, xmax=4,
+    xtick= {1,2,3,4},
+    grid=major,
+    legend entries={Brich\_N1000000,Brich\_N4000},
+    legend pos=outer north west
+]
+    \addplot[blue, thick, mark=*] coordinates {
+    (1, 1.324824)
+    (2, 1.41)
+    (3, 1.407046)
+    (4, 1.31)
+    };
+    \label{plot_one}
+\end{axis}
+
+\begin{axis}[
+    axis y line*=right,
+    axis x line=none,
+    ylabel={Computation time (s)},
+    ymin=0.07, ymax=0.11,
+    xmin=1, xmax=4,
+    ylabel near ticks,
+    yticklabel style={text color=red},
+    legend entries={Circle\_N4000, Brich\_N100000}, 
+    legend pos= north west
+]
+    \addplot[red, thick, mark=*] coordinates {
+    (1, 0.0898)
+    (2, 0.101)
+    (3, 0.0791)
+    (4, 0.0726)
+    };
+    \label{plot_two}
+\end{axis}
+\end{tikzpicture}
+    \caption{Consistency of the computation time in Open-MP for two distinct cases Brich\_N100000(left) and Circle\_N4000(right)}
+    \label{fig2}
+\end{figure}
+
+We also tested consistency of the computation time as shown in Figure \ref{fig2} resulting low standard deviation values among themselves. Finally, multi-threading caused no effect on the accuracy of our results showing that our parallelization structured properly which resulting consistent results with HW2
+
+ 
+
+
+ \section{Conclusion}
+In conclusion, this report has demonstrated that our code for implementation of Lloyd's clustering algorithm with Open-MP have been successfully implemented. Reducing computation times by ranging between 10\% to 50\%. We have also demonstrated over usage of multi threading could be non-beneficial for relatively small cluster of data. Therefore there is always a an optimization of the threading needs to be done considering amount of the data computed. Thus avoiding future problems. Moreover, the accuracy of the results remained same and standard deviation in the computation time resulted too low to mention confirming our operation and algorithm is well structured.
+
+\end{document}
